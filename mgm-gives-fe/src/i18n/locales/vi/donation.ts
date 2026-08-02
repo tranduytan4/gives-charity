@@ -1,0 +1,22 @@
+export default {
+  title: 'Quyên góp',
+  myDonations: 'Quyên góp của tôi',
+  donationManagement: 'Quản lý quyên góp',
+  monetaryDonation: 'Quyên góp tiền',
+  goodsDonation: 'Quyên góp hiện vật',
+  amount: 'Số tiền',
+  donor: 'Người quyên góp',
+  date: 'Ngày thực hiện',
+  method: 'Phương thức thanh toán',
+  proof: 'Minh chứng chuyển khoản',
+  submitProof: 'Tải lên minh chứng',
+  confirmDonation: 'Xác nhận quyên góp',
+  thankYou: 'Cảm ơn tấm lòng hảo tâm của bạn!',
+  successMessage: 'Quyên góp số tiền {{amount}} đã thành công.',
+  history: 'Lịch sử quyên góp',
+  transactionRef: 'Mã giao dịch',
+  types: {
+    MONETARY: 'Quyên góp tiền',
+    GOODS: 'Quyên góp hiện vật',
+  },
+} as const;

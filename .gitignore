@@ -1,0 +1,42 @@
+# Environment & Credential files (STRICTLY LOCAL ONLY)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Secrets & Keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Java / Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# Node / React build output
+node_modules/
+dist/
+coverage/
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs & Crash Dumps
+*.log
+hs_err_pid*
+
+# OS & Temporary
+.DS_Store
+Thumbs.db
+tmp/
+temp/

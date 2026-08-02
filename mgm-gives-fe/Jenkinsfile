@@ -1,0 +1,161 @@
+pipeline {
+    agent { label 'linux-node' }
+
+    tools {
+        nodejs 'Node22'
+    }
+
+    environment {
+        HOST_NAME = 'da-nang-internship-docker-local.dockerregistry.mgm-tp.com'
+
+        NAMESPACE = 'com.mgmtp.da-nang-internship'
+        GROUP_ID = 'com.mgmtp.gives'
+        IMAGE_NAME = 'mgm-gives-fe'
+
+        IMAGE_REPOSITORY = "${HOST_NAME}/${NAMESPACE}/${GROUP_ID}/${IMAGE_NAME}"
+        IMAGE_TAG_PREFIX = "${(env.CHANGE_BRANCH ?: env.BRANCH_NAME).replace('/', '-')}"
+
+        DOCKER_IMAGE_NAME = "${IMAGE_REPOSITORY}:${IMAGE_TAG_PREFIX}-${env.BUILD_NUMBER}"
+        //LATEST_TAG = "${IMAGE_REPOSITORY}:${getStableTagPrefix()}-latest"
+
+        REGISTRY = "https://${HOST_NAME}"
+
+        DEPLOY_HOST = 'mgm-gives.mgm-edv.de'
+        DEPLOY_USER = 'mgmgives'
+        SSH_CREDENTIALS_ID = 'ci-user-ssh'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
+        stage('Biome Check') {
+            steps {
+                sh 'npm run biome:check'
+            }
+        }
+
+        stage('Type Check') {
+            steps {
+                sh 'npm run type-check'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Build') {
+            when {
+                expression { return isDeployableBranch() }
+            }
+            steps {
+                script {
+                    def viteMode = getDeployEnvironment()
+                    def latestTag = "${IMAGE_REPOSITORY}:${getStableTagPrefix()}-latest"
+                    env.LATEST_TAG = latestTag
+                    sh """
+                        docker build \
+                        -f Dockerfile \
+                        --build-arg VITE_MODE=${viteMode} \
+                        -t ${DOCKER_IMAGE_NAME} \
+                        -t ${latestTag} \
+                        .
+                    """
+                    sh "docker images | grep ${IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage('Push') {
+            when {
+                expression { return isDeployableBranch() }
+            }
+            steps {
+                withDockerRegistry(
+                    credentialsId: 'ci-user-artifactory-token',
+                    url: "${REGISTRY}"
+                ) {
+                    sh "docker push ${DOCKER_IMAGE_NAME}"
+                    sh "docker push ${env.LATEST_TAG}"
+                }
+            }
+        }
+
+        stage('Approve Production Deploy') {
+            when {
+                expression { return getCurrentBranch() == 'master' }
+            }
+            steps {
+                input message: "Deploy ${env.DOCKER_IMAGE_NAME} to production?", ok: 'Deploy'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression { return isDeployableBranch() }
+            }
+            steps {
+                script {
+                    def profile = getDeployEnvironment()
+
+                    sshagent([env.SSH_CREDENTIALS_ID]) {
+                        sh "scp -o StrictHostKeyChecking=no docker-compose.yml ${DEPLOY_USER}@${DEPLOY_HOST}:/home/${DEPLOY_USER}"
+
+                        withCredentials([usernamePassword(credentialsId: 'ci-user-artifactory-token', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh "ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin ${HOST_NAME}'"
+                            sh "ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} 'docker network inspect mgm-gives-network >/dev/null 2>&1 || docker network create mgm-gives-network'"
+                            sh "ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} 'docker compose -f docker-compose.yml --profile ${profile} up -d --pull always --force-recreate'"
+                            sh "ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} 'docker logout ${HOST_NAME}'"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Frontend CI/CD pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Frontend CI/CD pipeline failed.'
+        }
+    }
+}
+
+def getCurrentBranch() {
+    return env.CHANGE_BRANCH ?: env.BRANCH_NAME
+}
+
+def isDeployableBranch() {
+    def branch = getCurrentBranch()
+    def exactBranches = ['develop', 'master']
+
+    return exactBranches.contains(branch) || branch.startsWith('release/')
+}
+
+def getDeployEnvironment() {
+    def branch = getCurrentBranch()
+    if (branch == 'master') return 'production'
+    if (branch.startsWith('release/')) return 'staging'
+    return 'development'
+}
+def getStableTagPrefix() {
+    def branch = getCurrentBranch()
+    if (branch == 'master') return 'master'
+    if (branch.startsWith('release/')) return 'release'
+    return 'develop'
+}

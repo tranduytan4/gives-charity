@@ -1,0 +1,47 @@
+services:
+  mgm-gives-fe-development:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-fe:develop-latest
+    container_name: mgm-gives-fe-development
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - BACKEND_HOST=mgm-gives-be-development
+      - NGINX_ENVSUBST_FILTER=BACKEND_HOST
+    volumes:
+      - /home/mgmgives/mgm-gives-media/development:/app/media:ro
+    profiles:
+      - development
+
+  mgm-gives-fe-staging:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-fe:release-latest
+    container_name: mgm-gives-fe-staging
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    environment:
+      - BACKEND_HOST=mgm-gives-be-staging
+      - NGINX_ENVSUBST_FILTER=BACKEND_HOST
+    volumes:
+      - /home/mgmgives/mgm-gives-media/staging:/app/media:ro
+    profiles:
+      - staging
+
+  mgm-gives-fe-production:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-fe:master-latest
+    container_name: mgm-gives-fe-production
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - BACKEND_HOST=mgm-gives-be-production
+      - NGINX_ENVSUBST_FILTER=BACKEND_HOST
+    volumes:
+      - /home/mgmgives/mgm-gives-media/production:/app/media:ro
+    profiles:
+      - production
+
+networks:
+  default:
+    name: mgm-gives-network
+    external: true

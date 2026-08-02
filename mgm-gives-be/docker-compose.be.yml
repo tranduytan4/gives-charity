@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mgm-gives-be-development:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-be:develop-latest
+    container_name: mgm-gives-be-development
+    restart: always
+    ports:
+      - "8082:8080"
+    env_file:
+      - mgm-gives-env/.env.be.dev
+    environment:
+      - APP_MEDIA_UPLOAD_DIR=/app/media
+    volumes:
+      - /home/mgmgives/mgm-gives-logs/development:/app/logs
+      - /home/mgmgives/mgm-gives-media/development:/app/media
+    profiles:
+      - development
+
+  mgm-gives-be-staging:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-be:staging-latest
+    container_name: mgm-gives-be-staging
+    restart: always
+    ports:
+      - "8081:8080"
+    env_file:
+      - mgm-gives-env/.env.be.stag
+    environment:
+      - APP_MEDIA_UPLOAD_DIR=/app/media
+    volumes:
+      - /home/mgmgives/mgm-gives-logs/staging:/app/logs
+      - /home/mgmgives/mgm-gives-media/staging:/app/media
+    profiles:
+      - staging
+
+  mgm-gives-be-production:
+    image: da-nang-internship-docker-local.dockerregistry.mgm-tp.com/com.mgmtp.da-nang-internship/com.mgmtp.gives/mgm-gives-be:master-latest
+    container_name: mgm-gives-be-production
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - mgm-gives-env/.env.be.prod
+    environment:
+      - APP_MEDIA_UPLOAD_DIR=/app/media
+    volumes:
+      - /home/mgmgives/mgm-gives-logs/production:/app/logs
+      - /home/mgmgives/mgm-gives-media/production:/app/media
+    profiles:
+      - production
+
+networks:
+  default:
+    name: mgm-gives-network
+    external: true

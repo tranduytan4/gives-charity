@@ -1,0 +1,22 @@
+export default {
+  title: 'Donations',
+  myDonations: 'My Donations',
+  donationManagement: 'Donation Management',
+  monetaryDonation: 'Monetary Donation',
+  goodsDonation: 'Goods Donation',
+  amount: 'Amount',
+  donor: 'Donor',
+  date: 'Date',
+  method: 'Payment Method',
+  proof: 'Payment Proof',
+  submitProof: 'Submit Proof',
+  confirmDonation: 'Confirm Donation',
+  thankYou: 'Thank you for your generous donation!',
+  successMessage: 'Your donation of {{amount}} was successful.',
+  history: 'Donation History',
+  transactionRef: 'Transaction Ref',
+  types: {
+    MONETARY: 'Monetary Donation',
+    GOODS: 'Goods Donation',
+  },
+} as const;

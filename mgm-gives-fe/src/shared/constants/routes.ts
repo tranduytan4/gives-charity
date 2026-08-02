@@ -1,0 +1,43 @@
+export const ROUTES = {
+  // Auth routes
+  DEFAULT: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
+  VERIFY_EMAIL_SENT: '/verify-email-sent',
+
+  // User routes
+  DASHBOARD: '/dashboard',
+  CAMPAIGNS: '/campaigns',
+  MY_CAMPAIGNS: '/my-campaigns',
+  CREATE_CAMPAIGN: '/my-campaigns/new',
+  EDIT_CAMPAIGN: '/my-campaigns/:id/edit',
+  JOINED_CAMPAIGNS: '/joined-campaigns',
+  NOTIFICATIONS: '/notifications',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  INTEGRATION_SETTINGS: '/integration-settings',
+  HELP_SUPPORT: '/help-support',
+  MY_DONATIONS: '/my-donations',
+  CAMPAIGN_DETAIL: '/campaigns/:id',
+  PUBLIC_CAMPAIGN_DETAIL: '/public/campaigns/:id',
+  CAMPAIGN_DONATE: '/campaigns/:id/donate',
+  CAMPAIGN_RESULT: '/campaigns/:id/result',
+  CAMPAIGN_APPROVALS: '/campaigns/:id/approvals',
+  CAMPAIGN_UNJOIN_REQUESTS: '/campaigns/:id/unjoin-requests',
+  CAMPAIGN_ANNOUNCEMENT_DETAIL: '/campaigns/:campaignId/announcements/:announcementId',
+  CAMPAIGN_TASKS: '/campaigns/:campaignId/tasks',
+
+  // Admin routes
+  ADMIN: '/admin',
+  ADMIN_DASHBOARD: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_CAMPAIGNS: '/admin/campaigns',
+  ADMIN_DONATIONS: '/admin/donations',
+  ADMIN_CAMPAIGN_DETAIL: '/admin/campaigns/:id',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_PROFILE: '/admin/profile',
+} as const;
