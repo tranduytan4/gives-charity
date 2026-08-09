@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Check, CheckCircle2, Circle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button, Input, Label } from '@/shared/components/ui/';
@@ -13,6 +14,7 @@ import {
 import { useResetPasswordMutation } from '../hooks/useResetPasswordMutation';
 
 export function ResetPasswordForm() {
+  const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
 
@@ -46,9 +48,9 @@ export function ResetPasswordForm() {
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border-4 border-red-500 text-red-600">
           <AlertCircle className="h-7 w-7" />
         </div>
-        <h2 className="mb-3 text-2xl font-bold text-foreground">Invalid reset link</h2>
+        <h2 className="mb-3 text-2xl font-bold text-foreground">{t('resetPassword.invalidLink')}</h2>
         <p className="mb-7 text-muted-foreground">
-          This password reset link is missing a token. Please request a new one.
+          {t('resetPassword.invalidLinkDescription')}
         </p>
         <Button
           type="button"
@@ -56,7 +58,7 @@ export function ResetPasswordForm() {
           className="h-12 w-full text-base font-semibold"
           asChild
         >
-          <Link to="/forgot-password">Request new link</Link>
+          <Link to="/forgot-password">{t('resetPassword.requestNewLink')}</Link>
         </Button>
       </div>
     );
@@ -69,10 +71,10 @@ export function ResetPasswordForm() {
           <CheckCircle2 className="h-7 w-7" />
         </div>
 
-        <h2 className="mb-3 text-2xl font-bold text-foreground">Password updated</h2>
+        <h2 className="mb-3 text-2xl font-bold text-foreground">{t('resetPassword.successTitle')}</h2>
 
         <p className="mb-7 text-muted-foreground">
-          Your password has been reset successfully. You can now sign in with your new password.
+          {t('resetPassword.successDescription')}
         </p>
 
         <Button
@@ -80,7 +82,7 @@ export function ResetPasswordForm() {
           className="h-12 w-full text-base font-semibold bg-gradient-to-r from-primary to-[oklch(0.5_0.22_265)] shadow-md transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
           asChild
         >
-          <Link to="/login">Sign in</Link>
+          <Link to="/login">{t('resetPassword.signIn')}</Link>
         </Button>
       </div>
     );
@@ -100,7 +102,7 @@ export function ResetPasswordForm() {
 
       <div className="space-y-2">
         <Label htmlFor="newPassword" required>
-          New password
+          {t('resetPassword.newPasswordLabel')}
         </Label>
         <Input
           id="newPassword"
@@ -119,7 +121,7 @@ export function ResetPasswordForm() {
         )}
         {showPasswordRequirements && (
           <div className="mt-1.5 rounded-lg border border-gray-100 bg-gray-50/50 p-2.5 space-y-1.5 text-xs dark:border-gray-800 dark:bg-gray-900/20">
-            <p className="font-semibold text-muted-foreground">Password must include:</p>
+            <p className="font-semibold text-muted-foreground">{t('resetPassword.passwordMustInclude')}</p>
             <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {passwordRequirements.map(({ isMet, label }) => {
                 const met = isMet(password);
@@ -145,7 +147,7 @@ export function ResetPasswordForm() {
 
       <div className="space-y-2">
         <Label htmlFor="confirmNewPassword" required>
-          Confirm new password
+          {t('resetPassword.confirmNewPasswordLabel')}
         </Label>
         <Input
           id="confirmNewPassword"
@@ -169,12 +171,12 @@ export function ResetPasswordForm() {
         disabled={resetPasswordMutation.isPending}
         className="h-11 w-full cursor-pointer bg-gradient-to-r from-primary to-[oklch(0.5_0.22_265)] text-base font-semibold shadow-md transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
       >
-        {resetPasswordMutation.isPending ? 'Saving...' : 'Set new password'}
+        {resetPasswordMutation.isPending ? t('resetPassword.saving') : t('resetPassword.setNewPassword')}
       </Button>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
         <Link to="/login" className="font-medium text-primary hover:underline">
-          Back to sign in
+          {t('resetPassword.backToSignIn')}
         </Link>
       </p>
     </form>

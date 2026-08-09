@@ -74,4 +74,6 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long>, JpaSp
 
     @Query("SELECT COUNT(c) FROM Campaign c JOIN c.categories cat WHERE cat.id = :categoryId AND size(c.categories) = 1")
     long countCampaignsWhereCategoryIsOnlyOne(@Param("categoryId") Long categoryId);
+
+    boolean existsByTitle(String title);
 }

@@ -1,5 +1,6 @@
 import { ArrowLeft, Loader2, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/components/ui/index';
 import { AuthLayout } from './AuthLayout';
 
@@ -19,14 +20,19 @@ export function VerifyEmailSent({
   email,
   onResend,
   onBack,
-  title = 'Verify your email',
-  subtitle = 'We sent a verification link to your inbox.',
-  backText = 'Back to registration',
+  title,
+  subtitle,
+  backText,
   isResending = false,
   resendError = null,
   resendSuccess = false,
 }: VerifyEmailSentProps) {
+  const { t } = useTranslation('auth');
   const [countdown, setCountdown] = useState(0);
+
+  const resolvedTitle = title ?? t('verifyEmailSent.title');
+  const resolvedSubtitle = subtitle ?? t('verifyEmailSent.subtitle');
+  const resolvedBackText = backText ?? t('verifyEmailSent.backText');
 
   useEffect(() => {
     if (resendSuccess) {
@@ -40,6 +46,7 @@ export function VerifyEmailSent({
       return () => clearTimeout(timer);
     }
   }, [countdown]);
+
   return (
     <AuthLayout title="" subtitle="">
       <div className="space-y-6">
@@ -47,9 +54,9 @@ export function VerifyEmailSent({
           {/* Centered title and subtitle */}
           <div className="space-y-1.5 mb-2">
             <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-              {title}
+              {resolvedTitle}
             </h1>
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
+            <p className="text-sm text-muted-foreground">{resolvedSubtitle}</p>
           </div>
 
           {/* Icon mail */}
@@ -62,12 +69,12 @@ export function VerifyEmailSent({
           </div>
           {/* content email */}
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">We have sent a verification email to:</p>
+            <p className="text-sm text-muted-foreground">{t('verifyEmailSent.sentTo')}</p>
             <p className="font-semibold text-foreground bg-muted/40 px-3 py-1.5 rounded-lg inline-block border border-muted-foreground/10 text-sm">
               {email}
             </p>
             <p className="text-xs text-muted-foreground max-w-sm pt-2">
-              Please check your inbox (and spam folder) and click the link to activate your account.
+              {t('verifyEmailSent.checkSpam')}
             </p>
           </div>
         </div>
@@ -76,7 +83,7 @@ export function VerifyEmailSent({
         <div className="space-y-3 pt-2">
           {resendSuccess && (
             <p className="text-sm text-green-600 font-medium text-center rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2">
-              Verification email resent successfully!
+              {t('verifyEmailSent.resendSuccess')}
             </p>
           )}
 
@@ -94,12 +101,12 @@ export function VerifyEmailSent({
             {isResending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Resending...
+                {t('verifyEmailSent.resending')}
               </>
             ) : countdown > 0 ? (
-              `Resend in ${countdown}s`
+              t('verifyEmailSent.resendIn', { count: countdown })
             ) : (
-              'Resend verification email'
+              t('verifyEmailSent.resendEmail')
             )}
           </Button>
         </div>
@@ -110,7 +117,7 @@ export function VerifyEmailSent({
             onClick={onBack}
             className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1.5"
           >
-            <ArrowLeft className="h-4 w-4" /> {backText}
+            <ArrowLeft className="h-4 w-4" /> {resolvedBackText}
           </button>
         </div>
       </div>

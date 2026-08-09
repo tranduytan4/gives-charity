@@ -109,7 +109,7 @@ export function LoginForm() {
                 className="text-xs bg-white text-red-700 border-red-300 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {resendMutation.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-                {resendMutation.isPending ? 'Sending...' : 'Resend verification email'}
+                {resendMutation.isPending ? t('verifyEmailSent.loginResending') : t('verifyEmailSent.loginResend')}
               </Button>
             </div>
           )}
@@ -123,7 +123,7 @@ export function LoginForm() {
         >
           <CheckCircle2 className="h-5 w-5 shrink-0" />
           <p className="m-0 font-medium leading-5">
-            Verification email resent! Please check your inbox.
+            {t('verifyEmailSent.loginResendSuccess')}
           </p>
         </div>
       )}
@@ -144,7 +144,7 @@ export function LoginForm() {
           className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900/30 dark:bg-green-950/20 dark:text-green-400"
         >
           <CheckCircle2 className="h-5 w-5 shrink-0" />
-          <p className="m-0 font-medium leading-5">Logged in successfully! Redirecting...</p>
+          <p className="m-0 font-medium leading-5">{t('login.successMessage')}</p>
         </div>
       )}
 
@@ -204,7 +204,7 @@ export function LoginForm() {
 
       <div className="flex items-center gap-3" aria-hidden="true">
         <div className="h-px flex-1 bg-white/20" />
-        <span className="text-xs font-bold uppercase text-white/60">or</span>
+        <span className="text-xs font-bold uppercase text-white/60">{t('shared.or')}</span>
         <div className="h-px flex-1 bg-white/20" />
       </div>
 
@@ -215,7 +215,7 @@ export function LoginForm() {
         onClick={handleGoogleLogin}
       >
         <GoogleIcon />
-        Continue with Google
+        {t('shared.continueWithGoogle')}
       </Button>
 
       <p className="mt-4 text-center text-sm text-white/72">

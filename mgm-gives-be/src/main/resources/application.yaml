@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mgmgives}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -45,8 +45,8 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID:dummy-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:dummy-google-client-secret}
             scope:
               - openid
               - profile
@@ -70,12 +70,12 @@ app:
     donor-batch-size: ${GEMINI_DONOR_BATCH_SIZE:20}
   seed:
     admin:
-      email: ${SEED_ADMIN_EMAIL}
-      password: ${SEED_ADMIN_PASSWORD}
+      email: ${SEED_ADMIN_EMAIL:admin@example.com}
+      password: ${SEED_ADMIN_PASSWORD:ChangeMe@123}
       full-name: ${SEED_ADMIN_FULL_NAME:Admin}
   webex:
-    client-id: ${WEBEX_CLIENT_ID}
-    client-secret: ${WEBEX_CLIENT_SECRET}
+    client-id: ${WEBEX_CLIENT_ID:dummy-webex-client-id}
+    client-secret: ${WEBEX_CLIENT_SECRET:dummy-webex-client-secret}
     api-base-url: ${WEBEX_API_BASE_URL:https://webexapis.com/v1}
     redirect-uri: ${WEBEX_REDIRECT_URI:http://localhost:8080/api/integrations/webex/oauth/callback}
     scopes: ${WEBEX_SCOPES:meeting:schedules_read meeting:schedules_write spark:people_read spark:rooms_read}

@@ -1,11 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 
 export default function RegisterPage() {
+  const { t } = useTranslation('auth');
   return (
     <AuthLayout
-      title="Join mgmGives"
-      subtitle="Create your internal account to start giving with your colleagues."
+      title={t('register.title')}
+      subtitle={t('register.subtitle')}
       allowScroll
     >
       <RegisterForm />

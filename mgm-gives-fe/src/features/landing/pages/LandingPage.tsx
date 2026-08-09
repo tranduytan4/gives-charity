@@ -25,6 +25,7 @@ import {
   Waves,
 } from 'lucide-react';
 import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import storyImage from '@/assets/image/587060747_1431972062266474_4260127970844541890_n.jpg';
 import heroImageTwo from '@/assets/image/587076095_1431972252266455_2724063343294000030_n.jpg';
@@ -36,33 +37,29 @@ import heroImage from '@/assets/image/589645709_1431972215599792_738259388819180
 import { useCampaignQuery } from '@/features/campaign/hooks';
 import type { Campaign } from '@/features/campaign/types';
 import { useCategories } from '@/features/category';
+import { LanguageSelector } from '@/shared/components/LanguageSelector';
 import { Dialog } from '@/shared/components/ui/Dialog';
 import { Logo } from '@/shared/components/ui/Logo';
 import { ROUTES } from '@/shared/constants/routes';
 import { formatProgressCurrency } from '@/shared/utils/currency';
 import { getMediaUrl } from '@/shared/utils/media';
 
-const navItems = [
-  { label: 'Home', href: '#home' },
-  { label: 'Campaigns', href: '#campaigns' },
-  { label: 'Transparency', href: '#transparency' },
-  { label: 'Security & Roles', href: '#security' },
-  { label: 'FAQ', href: '#faq' },
+const NAV_HREFS = [
+  { key: 'home' as const, href: '#home' },
+  { key: 'campaigns' as const, href: '#campaigns' },
+  { key: 'transparency' as const, href: '#transparency' },
+  { key: 'securityRoles' as const, href: '#security' },
+  { key: 'faq' as const, href: '#faq' },
 ];
 
-const tickerItems = [
-  'Launch internal campaigns',
-  'Donate money or goods',
-  'Track donation progress',
-  'Assign volunteer tasks',
-  'Publish AI-assisted reports',
-  'Send personal thank-yous',
-];
-
-const tickerMarqueeItems = [
-  ...tickerItems.map((label) => ({ id: `first-${label}`, label })),
-  ...tickerItems.map((label) => ({ id: `second-${label}`, label })),
-];
+const TICKER_KEYS = [
+  'launchCampaigns',
+  'donateMoney',
+  'trackProgress',
+  'assignTasks',
+  'publishReports',
+  'sendThanks',
+] as const;
 
 const fallbackCategoryVisual: { icon: LucideIcon; image: string; tone: string } = {
   icon: Leaf,
@@ -77,159 +74,40 @@ const categoryVisuals: Array<{ icon: LucideIcon; image: string; tone: string }> 
   { icon: Leaf, image: storyImage, tone: 'bg-emerald-50 text-emerald-600' },
 ];
 
-const features = [
-  {
-    icon: Heart,
-    title: 'Money or goods',
-    description:
-      'Give cash and get a QR code for bank transfer on the spot, or drop off an item - every donation goes through a clear approval step before it counts.',
-    tone: 'bg-blue-50 text-primary',
-  },
-  {
-    icon: Grid2X2,
-    title: 'Live dashboard',
-    description:
-      'Watch totals move in real time and catch every update in a running "Recent Activities" feed - no refreshing, no guessing.',
-    tone: 'bg-orange-50 text-[#f59e0b]',
-  },
-  {
-    icon: ClipboardCheck,
-    title: 'A task board for volunteers',
-    description:
-      "Sign up for a job, drag it across the board as you go, and the campaign admin sees exactly what's covered and what still needs a hand.",
-    tone: 'bg-emerald-50 text-emerald-600',
-  },
-  {
-    icon: Eye,
-    title: 'Real-time transparency',
-    description:
-      'Every donation updates the public ledger instantly - anyone on the team can see it, no need to ask.',
-    tone: 'bg-red-50 text-[#f56b58]',
-  },
-  {
-    icon: Sparkles,
-    title: 'Gemini-powered reports',
-    description:
-      'One click drafts the campaign result report, and every donor gets a thank-you note written around what they actually gave.',
-    tone: 'bg-violet-50 text-violet-600',
-  },
-  {
-    icon: Award,
-    title: 'Personal impact tracking',
-    description:
-      'Keep track of your total contributions, collect milestones, download verified donation receipts, and review your giving history anytime.',
-    tone: 'bg-teal-50 text-teal-600',
-  },
+const FEATURE_ICONS: LucideIcon[] = [Heart, Grid2X2, ClipboardCheck, Eye, Sparkles, Award];
+const FEATURE_TONES = [
+  'bg-blue-50 text-primary',
+  'bg-orange-50 text-[#f59e0b]',
+  'bg-emerald-50 text-emerald-600',
+  'bg-red-50 text-[#f56b58]',
+  'bg-violet-50 text-violet-600',
+  'bg-teal-50 text-teal-600',
 ];
 
-const steps = [
-  {
-    icon: Search,
-    title: 'Pick a campaign',
-    description:
-      "Browse what's active, filter by category, and see the real progress bar - not a guess.",
-    tone: 'bg-blue-50 text-primary',
-    badgeTone: 'bg-primary',
-  },
-  {
-    icon: Heart,
-    title: 'Give money or goods',
-    description:
-      "Scan the auto-generated QR code to transfer cash, or register an item and pick a drop-off point. Either way, it's logged instantly.",
-    tone: 'bg-orange-50 text-[#f59e0b]',
-    badgeTone: 'bg-[#d35f17]',
-  },
-  {
-    icon: Sparkles,
-    title: 'Get the AI report',
-    description:
-      'When the goal is hit, mgmGives AI writes the final report - fund breakdown, photos, and all.',
-    tone: 'bg-violet-50 text-violet-600',
-    badgeTone: 'bg-violet-600',
-  },
+const STEP_ICONS: LucideIcon[] = [Search, Heart, Sparkles];
+const STEP_TONES = [
+  'bg-blue-50 text-primary',
+  'bg-orange-50 text-[#f59e0b]',
+  'bg-violet-50 text-violet-600',
 ];
+const STEP_BADGE_TONES = ['bg-primary', 'bg-[#d35f17]', 'bg-violet-600'];
 
-const roleDetails = {
-  donor: {
-    icon: Users,
-    title: 'Donor / Member',
-    tone: 'bg-blue-50 text-primary',
-    description:
-      'Every mgm employee starts here. Browse campaigns, give money or goods, follow causes, and download receipts anytime.',
-    permissions: ['Browse & donate', 'Track personal impact', 'Download receipts'],
-  },
-  volunteer: {
-    icon: ClipboardCheck,
-    title: 'Volunteer',
-    tone: 'bg-emerald-50 text-emerald-600',
-    description:
-      'Sign up for hands-on jobs, coordinate drop-offs, and move tasks across the board as work gets done.',
-    permissions: ['Claim tasks', 'Use task boards', 'Log completed work'],
-  },
-  admin: {
-    icon: HeartHandshake,
-    title: 'Campaign Admin',
-    tone: 'bg-orange-50 text-orange-600',
-    description:
-      'Launch campaigns, assign volunteer tasks, approve donations, and publish final reports once the goal is hit.',
-    permissions: ['Create campaigns', 'Approve donations', 'Publish AI reports'],
-  },
-  sysadmin: {
-    icon: LockKeyhole,
-    title: 'System Admin',
-    tone: 'bg-violet-50 text-violet-600',
-    description:
-      'Manage users, roles, categories, approvals, and platform-wide reporting from one controlled workspace.',
-    permissions: ['Manage roles', 'Approve categories', 'View reports'],
-  },
-};
+const ROLE_ICONS = {
+  donor: Users,
+  volunteer: ClipboardCheck,
+  admin: HeartHandshake,
+  sysadmin: LockKeyhole,
+} as const;
+const ROLE_TONES = {
+  donor: 'bg-blue-50 text-primary',
+  volunteer: 'bg-emerald-50 text-emerald-600',
+  admin: 'bg-orange-50 text-orange-600',
+  sysadmin: 'bg-violet-50 text-violet-600',
+} as const;
+const ROLE_KEYS = ['donor', 'volunteer', 'admin', 'sysadmin'] as const;
+const FAQ_INDICES = [1, 2, 3, 4, 5, 6, 7] as const;
 
-const roleTabs = [
-  { key: 'donor', label: 'Donor / Member', caption: 'Give and follow' },
-  { key: 'volunteer', label: 'Volunteer', caption: 'Help hands-on' },
-  { key: 'admin', label: 'Campaign Admin', caption: 'Run campaigns' },
-  { key: 'sysadmin', label: 'System Admin', caption: 'Full oversight' },
-] as const;
-
-const faqs = [
-  {
-    question: 'How does mgmGives make sure funds reach the right place?',
-    answer:
-      'Every transaction is logged internally. Funds are tied to reviewed campaigns, and disbursement status stays visible on the campaign page.',
-  },
-  {
-    question: 'How is the final report generated?',
-    answer:
-      'When a campaign wraps, the admin can draft a report from donation, delivery, photo, and milestone data, then review it before publishing.',
-  },
-  {
-    question: 'Do donors get any kind of thank-you?',
-    answer:
-      'Yes. Campaign admins can send personal thank-you messages based on what each donor actually contributed.',
-  },
-  {
-    question: 'I want to volunteer, not just donate. Is that possible?',
-    answer:
-      'Yes. Campaigns that need hands-on help can post tasks to a shared board so volunteers can claim and complete them.',
-  },
-  {
-    question: 'Can I track in-kind donations?',
-    answer:
-      'Yes. For in-kind campaigns, donors register what they are giving and campaign admins confirm once it is received.',
-  },
-  {
-    question: 'Who can start a new campaign?',
-    answer:
-      'Campaign Admins and System Admins can launch campaigns. Employees can submit proposals for review.',
-  },
-  {
-    question: 'Is my personal data safe?',
-    answer:
-      'Yes. Access is account-based, sensitive data is protected, and donation workflows stay inside the platform.',
-  },
-];
-
-type RoleKey = keyof typeof roleDetails;
+type RoleKey = (typeof ROLE_KEYS)[number];
 
 const publicCampaignDetailPath = (id: string | number) =>
   ROUTES.PUBLIC_CAMPAIGN_DETAIL.replace(':id', String(id));
@@ -252,27 +130,7 @@ const getCampaignProgress = (campaign: Campaign) => {
   return Math.min(100, Math.round((campaign.currentRaised / campaign.target) * 100));
 };
 
-const getCampaignMeta = (campaign: Campaign) => {
-  if (campaign.status === 'COMPLETED') return 'Completed';
-  const diffDays = Math.ceil(
-    (new Date(campaign.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
-  if (diffDays <= 0) return 'Ending soon';
-  return `${diffDays} day${diffDays === 1 ? '' : 's'} left`;
-};
 
-const getCampaignStatusLabel = (campaign: Campaign) => {
-  switch (campaign.status) {
-    case 'COMPLETED':
-      return 'Completed';
-    case 'IN_PROGRESS':
-      return 'In progress';
-    case 'APPROVED':
-      return 'Approved';
-    default:
-      return getCampaignMeta(campaign);
-  }
-};
 
 const getCampaignStatusClass = (campaign: Campaign) => {
   switch (campaign.status) {
@@ -288,6 +146,7 @@ const getCampaignStatusClass = (campaign: Campaign) => {
 };
 
 export default function LandingPage() {
+  const { t } = useTranslation('common');
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeRole, setActiveRole] = useState<RoleKey>('donor');
@@ -295,6 +154,69 @@ export default function LandingPage() {
   const [campaignPageIndex, setCampaignPageIndex] = useState(0);
   const [categoryPageIndex, setCategoryPageIndex] = useState(0);
   const [categoryCampaignPageIndex, setCategoryCampaignPageIndex] = useState(0);
+
+  const navItems = useMemo(() => NAV_HREFS.map((item) => ({
+    label: t(`landing.nav.${item.key}`),
+    href: item.href,
+  })), [t]);
+
+  const tickerItems = useMemo(() => TICKER_KEYS.map((key) => t(`landing.ticker.${key}`)), [t]);
+
+  const tickerMarqueeItems = useMemo(() => [
+    ...tickerItems.map((label) => ({ id: `first-${label}`, label })),
+    ...tickerItems.map((label) => ({ id: `second-${label}`, label })),
+  ], [tickerItems]);
+
+  const features = useMemo(() => [
+    { icon: FEATURE_ICONS[0], title: t('landing.features.moneyOrGoods'), description: t('landing.features.moneyOrGoodsDesc'), tone: FEATURE_TONES[0] },
+    { icon: FEATURE_ICONS[1], title: t('landing.features.liveDashboard'), description: t('landing.features.liveDashboardDesc'), tone: FEATURE_TONES[1] },
+    { icon: FEATURE_ICONS[2], title: t('landing.features.taskBoard'), description: t('landing.features.taskBoardDesc'), tone: FEATURE_TONES[2] },
+    { icon: FEATURE_ICONS[3], title: t('landing.features.realTimeTransparency'), description: t('landing.features.realTimeTransparencyDesc'), tone: FEATURE_TONES[3] },
+    { icon: FEATURE_ICONS[4], title: t('landing.features.geminiReports'), description: t('landing.features.geminiReportsDesc'), tone: FEATURE_TONES[4] },
+    { icon: FEATURE_ICONS[5], title: t('landing.features.personalTracking'), description: t('landing.features.personalTrackingDesc'), tone: FEATURE_TONES[5] },
+  ], [t]);
+
+  const steps = useMemo(() => [
+    { icon: STEP_ICONS[0], title: t('landing.steps.step1Title'), description: t('landing.steps.step1Desc'), tone: STEP_TONES[0], badgeTone: STEP_BADGE_TONES[0] },
+    { icon: STEP_ICONS[1], title: t('landing.steps.step2Title'), description: t('landing.steps.step2Desc'), tone: STEP_TONES[1], badgeTone: STEP_BADGE_TONES[1] },
+    { icon: STEP_ICONS[2], title: t('landing.steps.step3Title'), description: t('landing.steps.step3Desc'), tone: STEP_TONES[2], badgeTone: STEP_BADGE_TONES[2] },
+  ], [t]);
+
+  const roleDetails = useMemo(() => ({
+    donor: { icon: ROLE_ICONS.donor, title: t('landing.security.donor.title'), tone: ROLE_TONES.donor, description: t('landing.security.donor.description'), permissions: [t('landing.security.donor.perm1'), t('landing.security.donor.perm2'), t('landing.security.donor.perm3')] },
+    volunteer: { icon: ROLE_ICONS.volunteer, title: t('landing.security.volunteer.title'), tone: ROLE_TONES.volunteer, description: t('landing.security.volunteer.description'), permissions: [t('landing.security.volunteer.perm1'), t('landing.security.volunteer.perm2'), t('landing.security.volunteer.perm3')] },
+    admin: { icon: ROLE_ICONS.admin, title: t('landing.security.admin.title'), tone: ROLE_TONES.admin, description: t('landing.security.admin.description'), permissions: [t('landing.security.admin.perm1'), t('landing.security.admin.perm2'), t('landing.security.admin.perm3')] },
+    sysadmin: { icon: ROLE_ICONS.sysadmin, title: t('landing.security.sysadmin.title'), tone: ROLE_TONES.sysadmin, description: t('landing.security.sysadmin.description'), permissions: [t('landing.security.sysadmin.perm1'), t('landing.security.sysadmin.perm2'), t('landing.security.sysadmin.perm3')] },
+  }), [t]);
+
+  const roleTabs = useMemo(() => ROLE_KEYS.map((key) => ({
+    key,
+    label: t(`landing.security.${key}.title`),
+    caption: t(`landing.security.${key}.caption`),
+  })), [t]);
+
+  const faqs = useMemo(() => FAQ_INDICES.map((i) => ({
+    question: t(`landing.faq.q${i}`),
+    answer: t(`landing.faq.a${i}`),
+  })), [t]);
+
+  const getCampaignMeta = (campaign: Campaign) => {
+    if (campaign.status === 'COMPLETED') return t('landing.campaigns.statusCompleted');
+    const diffDays = Math.ceil(
+      (new Date(campaign.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
+    if (diffDays <= 0) return t('landing.campaigns.endingSoon');
+    return t(diffDays === 1 ? 'landing.campaigns.daysLeft' : 'landing.campaigns.daysLeft_other', { count: diffDays });
+  };
+
+  const getCampaignStatusLabel = (campaign: Campaign) => {
+    switch (campaign.status) {
+      case 'COMPLETED': return t('landing.campaigns.statusCompleted');
+      case 'IN_PROGRESS': return t('landing.campaigns.statusInProgress');
+      case 'APPROVED': return t('landing.campaigns.statusApproved');
+      default: return getCampaignMeta(campaign);
+    }
+  };
   const { data: campaignPage, isLoading: isCampaignsLoading } = useCampaignQuery(
     {
       page: 0,
@@ -441,17 +363,18 @@ export default function LandingPage() {
             </button>
 
             <div className="flex shrink-0 items-center gap-2 text-sm font-bold md:hidden">
+              <LanguageSelector compact className="border border-slate-200" />
               <Link
                 to={ROUTES.LOGIN}
                 className="rounded-full px-3 py-2 text-slate-700 transition-colors hover:bg-white/70 hover:text-primary sm:px-4"
               >
-                Sign in
+                {t('landing.nav.signIn')}
               </Link>
               <Link
                 to={ROUTES.REGISTER}
                 className="rounded-full bg-primary px-3 py-2 text-white shadow-sm transition-colors hover:bg-blue-700 sm:px-4"
               >
-                Sign up
+                {t('landing.nav.signUp')}
               </Link>
             </div>
           </div>
@@ -473,17 +396,18 @@ export default function LandingPage() {
           </nav>
 
           <div className="hidden shrink-0 items-center gap-2 text-sm font-bold md:flex">
+            <LanguageSelector compact className="border border-slate-200" />
             <Link
               to={ROUTES.LOGIN}
               className="rounded-full px-3 py-2 text-slate-700 transition-colors hover:bg-white/70 hover:text-primary sm:px-4"
             >
-              Sign in
+              {t('landing.nav.signIn')}
             </Link>
             <Link
               to={ROUTES.REGISTER}
               className="rounded-full bg-primary px-3 py-2 text-white shadow-sm transition-colors hover:bg-blue-700 sm:px-4"
             >
-              Sign up
+              {t('landing.nav.signUp')}
             </Link>
           </div>
         </div>
@@ -513,36 +437,40 @@ export default function LandingPage() {
               </span>
               <span className="h-3 w-[1px] bg-slate-200" />
               <span className="tracking-wide text-slate-600 font-semibold">
-                internal giving platform &bull; mgm technology partners
+                {t('landing.hero.badge')}
               </span>
             </div>
 
             <h1 className="text-5xl font-black leading-[1.08] tracking-normal text-slate-950 sm:text-6xl lg:text-7xl">
               <span className="block transition-transform duration-300 hover:translate-x-1">
-                Give More.
+                {t('landing.hero.heading1')}
               </span>
               <span className="relative inline-block my-1">
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent animate-shimmer">
-                  Smile More.
+                  {t('landing.hero.heading2')}
                 </span>
                 <Sparkles className="absolute -right-7 -top-1 h-6 w-6 text-amber-400 animate-bounce" />
               </span>
               <span className="block bg-gradient-to-r from-slate-950 via-slate-900 to-blue-900 bg-clip-text text-transparent">
-                Change More{' '}
+                {t('landing.hero.heading3')}{' '}
                 <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 bg-clip-text text-transparent">
-                  Lives.
+                  {t('landing.hero.heading3Highlight')}
                   <span className="absolute -bottom-1 left-0 h-[4px] w-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 opacity-80" />
                 </span>
               </span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              mgmGives helps every mgm teammate launch campaigns, donate money or goods, and see
-              exactly where support goes.
+              {t('landing.hero.subtitle')}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
-              {['Raise funds', 'Collect goods', 'Track it live', 'AI reports'].map((item) => (
+              {[
+                t('landing.hero.tagRaiseFunds'),
+                t('landing.hero.tagCollectGoods'),
+                t('landing.hero.tagTrackLive'),
+                t('landing.hero.tagAiReports'),
+              ].map((item) => (
                 <span
                   key={item}
                   className="rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-black text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-blue-50/50 hover:text-primary hover:shadow"
@@ -557,7 +485,7 @@ export default function LandingPage() {
                 to={ROUTES.REGISTER}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-extrabold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:scale-[1.02] hover:bg-blue-700 hover:shadow-blue-600/30"
               >
-                Start Giving
+                {t('landing.hero.startGiving')}
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <button
@@ -565,12 +493,12 @@ export default function LandingPage() {
                 onClick={() => scrollToSection('#campaigns')}
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-4 text-sm font-extrabold text-slate-900 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:text-primary"
               >
-                Browse Campaigns
+                {t('landing.hero.browseCampaigns')}
               </button>
             </div>
 
             <p className="mt-3 text-sm font-semibold text-slate-500">
-              Free for every mgm employee. No hidden fees.
+              {t('landing.hero.freeForAll')}
             </p>
           </div>
 
@@ -589,7 +517,7 @@ export default function LandingPage() {
                     className="h-72 object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                   />
                   <span className="landing-polaroid-cap transition-colors group-hover:text-primary">
-                    Community delivery day
+                    {t('landing.heroCard.communityDelivery')}
                   </span>
                   <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-[#ff6a53] shadow-sm transition-transform duration-200 hover:scale-110">
                     <Heart className="h-3.5 w-3.5 fill-current animate-pulse" />
@@ -609,7 +537,7 @@ export default function LandingPage() {
                     className="h-40 object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   <span className="landing-polaroid-cap transition-colors group-hover:text-primary">
-                    Packed with care
+                    {t('landing.heroCard.packedWithCare')}
                   </span>
                 </button>
 
@@ -625,7 +553,7 @@ export default function LandingPage() {
                     className="h-40 object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   <span className="landing-polaroid-cap transition-colors group-hover:text-primary">
-                    Goods received
+                    {t('landing.heroCard.goodsReceived')}
                   </span>
                 </button>
               </div>
@@ -634,24 +562,24 @@ export default function LandingPage() {
                 <div className="mb-2.5 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-black text-slate-950">
                     <Sparkles className="h-4 w-4 text-amber-500" />
-                    <span>Gemini AI & Workflow</span>
+                    <span>{t('landing.heroCard.geminiWorkflow')}</span>
                   </div>
                   <span className="rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-[10px] font-extrabold text-violet-600">
-                    Automated
+                    {t('landing.heroCard.automated')}
                   </span>
                 </div>
                 <div className="space-y-1.5 text-[11.5px] font-bold text-slate-600">
                   <div className="flex items-center gap-2 rounded-lg bg-slate-50/80 px-2 py-1.5 transition-colors hover:bg-slate-100/80">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Instant QR & Goods Approval</span>
+                    <span className="truncate">{t('landing.heroCard.instantQr')}</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg bg-slate-50/80 px-2 py-1.5 transition-colors hover:bg-slate-100/80">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Transparent Ledger & Photo Log</span>
+                    <span className="truncate">{t('landing.heroCard.transparentLedger')}</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg bg-slate-50/80 px-2 py-1.5 transition-colors hover:bg-slate-100/80">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Gemini AI Report & Thank-yous</span>
+                    <span className="truncate">{t('landing.heroCard.geminiReport')}</span>
                   </div>
                 </div>
               </div>
@@ -699,17 +627,16 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-14 max-w-4xl">
             <h2 className="max-w-3xl text-4xl font-black leading-tight tracking-normal text-slate-950 sm:text-5xl">
-              Everything it takes to run a campaign people care about
+              {t('landing.features.sectionTitle')}
             </h2>
             <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600">
-              No more spreadsheets buried in someone's inbox. mgmGives brings it all into one place,
-              for donors, volunteers, and organizers alike.
+              {t('landing.features.sectionSubtitle')}
             </p>
           </div>
 
           <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
-              const Icon = feature.icon;
+              const Icon = feature.icon || Heart;
               return (
                 <article
                   key={feature.title}
@@ -737,17 +664,14 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto mb-16 max-w-4xl text-center">
             <h2 className="text-4xl font-black leading-[1.12] tracking-normal text-slate-950 sm:text-5xl">
-              From browsing to impact report, in
-              <br className="hidden sm:block" />
-              three steps
+              {t('landing.steps.sectionTitle')}
               <span className="ml-4 inline-flex -rotate-6 items-center gap-2 align-middle text-2xl font-black text-primary">
-                easy peasy
+                {t('landing.steps.sectionEasyPeasy')}
                 <span className="text-xl">✏️</span>
               </span>
             </h2>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-8 text-slate-600">
-              No approvals chasing, no manual spreadsheets — the platform carries the paperwork so
-              your team can focus on giving.
+              {t('landing.steps.sectionSubtitle')}
             </p>
           </div>
 
@@ -764,7 +688,7 @@ export default function LandingPage() {
               />
             </svg>
             {steps.map((step, index) => {
-              const Icon = step.icon;
+              const Icon = step.icon || Search;
               return (
                 <article key={step.title} className="relative text-center">
                   <div className="relative z-10 mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl bg-white">
@@ -795,10 +719,10 @@ export default function LandingPage() {
           <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <h2 className="text-4xl font-black tracking-normal text-slate-950 sm:text-5xl">
-                Campaigns open right now
+                {t('landing.campaigns.sectionTitle')}
               </h2>
               <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
-                Pick one, chip in - the amount and progress you see is always real.
+                {t('landing.campaigns.sectionSubtitle')}
               </p>
             </div>
           </div>
@@ -877,7 +801,7 @@ export default function LandingPage() {
                           />
                         </div>
                         <div className="mt-4 text-sm font-bold text-slate-500">
-                          {formatProgressCurrency(campaign.target || 0)} goal
+                          {formatProgressCurrency(campaign.target || 0)} {t('landing.campaigns.goal')}
                         </div>
                       </div>
                     </Link>
@@ -916,9 +840,9 @@ export default function LandingPage() {
             </>
           ) : (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-              <p className="text-lg font-black text-slate-900">No public campaigns yet.</p>
+              <p className="text-lg font-black text-slate-900">{t('landing.campaigns.noCampaigns')}</p>
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                Approved campaigns will appear here automatically.
+                {t('landing.campaigns.noCampaignsSubtitle')}
               </p>
             </div>
           )}
@@ -931,13 +855,13 @@ export default function LandingPage() {
           <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <h2 className="text-4xl font-black tracking-normal text-slate-950 sm:text-5xl">
-                Browse by category
+                {t('landing.categories.sectionTitle')}
                 <span className="ml-4 inline-flex -rotate-3 text-2xl font-black text-[#f56b58] sm:text-3xl">
-                  pick one!
+                  {t('landing.categories.sectionAccent')}
                 </span>
               </h2>
               <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
-                Every campaign on mgmGives falls into one of these.
+                {t('landing.categories.sectionSubtitle')}
               </p>
             </div>
           </div>
@@ -1013,9 +937,9 @@ export default function LandingPage() {
             </>
           ) : (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <p className="text-lg font-black text-slate-900">No categories available yet.</p>
+              <p className="text-lg font-black text-slate-900">{t('landing.categories.noCategories')}</p>
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                Active categories from the admin area will appear here.
+                {t('landing.categories.noCategoriesSubtitle')}
               </p>
             </div>
           )}
@@ -1036,28 +960,27 @@ export default function LandingPage() {
           </div>
           <div>
             <div className="mb-3 text-sm font-black uppercase text-primary">
-              Transparency & AI reports
+              {t('landing.transparency.badge')}
             </div>
             <h2 className="text-4xl font-black leading-tight tracking-normal text-slate-950">
-              Turn campaign activity into a report people can trust.
+              {t('landing.transparency.title')}
             </h2>
             <p className="mt-5 text-base leading-8 text-slate-600">
-              Donation totals, photos, delivery notes, volunteer work, and milestones stay tied
-              together so campaign admins can publish a clear final report.
+              {t('landing.transparency.subtitle')}
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-blue-100 bg-white/85 p-5 shadow-sm backdrop-blur">
                 <FileText className="mb-3 h-6 w-6 text-primary" />
-                <div className="font-black">Final report drafts</div>
+                <div className="font-black">{t('landing.transparency.finalReportTitle')}</div>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Summaries can be drafted from campaign data, then reviewed by admins.
+                  {t('landing.transparency.finalReportDesc')}
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/85 p-5 shadow-sm backdrop-blur">
                 <CalendarDays className="mb-3 h-6 w-6 text-emerald-600" />
-                <div className="font-black">Timeline visibility</div>
+                <div className="font-black">{t('landing.transparency.timelineTitle')}</div>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Employees can follow progress from launch to final outcome.
+                  {t('landing.transparency.timelineDesc')}
                 </p>
               </div>
             </div>
@@ -1068,13 +991,12 @@ export default function LandingPage() {
       <section id="security" className="bg-white py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
           <div>
-            <div className="mb-3 text-sm font-black uppercase text-primary">Security & roles</div>
+            <div className="mb-3 text-sm font-black uppercase text-primary">{t('landing.security.badge')}</div>
             <h2 className="text-4xl font-black leading-tight tracking-normal text-slate-950">
-              The right people get the right level of control.
+              {t('landing.security.title')}
             </h2>
             <p className="mt-5 text-base leading-8 text-slate-600">
-              Role-based access keeps giving simple for employees while campaign and system admins
-              get the tools they need to manage the platform.
+              {t('landing.security.subtitle')}
             </p>
           </div>
 
@@ -1126,10 +1048,10 @@ export default function LandingPage() {
       <section id="faq" className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
         <div className="mx-auto mb-12 max-w-xl text-center">
           <h2 className="text-4xl font-black tracking-normal text-slate-950">
-            Frequently asked questions
+            {t('landing.faq.sectionTitle')}
           </h2>
           <p className="mt-3 text-base leading-7 text-slate-600">
-            Still curious about something? Here is what people usually ask first.
+            {t('landing.faq.sectionSubtitle')}
           </p>
         </div>
 
@@ -1151,16 +1073,16 @@ export default function LandingPage() {
 
       <section className="mx-4 mb-10 overflow-hidden rounded-[1.75rem] bg-primary px-6 py-16 text-center text-white sm:mx-6 lg:mx-10">
         <div className="mx-auto max-w-xl">
-          <h2 className="text-4xl font-black tracking-normal">Your next campaign is waiting.</h2>
+          <h2 className="text-4xl font-black tracking-normal">{t('landing.cta.title')}</h2>
           <p className="mt-4 text-base leading-7 text-blue-100">
-            Takes about a minute to log in and see what mgm is rallying behind today.
+            {t('landing.cta.subtitle')}
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               to={ROUTES.LOGIN}
               className="inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-sm font-extrabold text-primary transition-transform hover:scale-[1.03]"
             >
-              Log in now
+              {t('landing.cta.logInNow')}
             </Link>
             <button
               type="button"
@@ -1170,7 +1092,7 @@ export default function LandingPage() {
               }}
               className="inline-flex items-center justify-center rounded-full border border-white/35 px-8 py-4 text-sm font-extrabold text-white transition-colors hover:bg-white/10"
             >
-              Browse open campaigns
+              {t('landing.cta.browseOpenCampaigns')}
             </button>
           </div>
         </div>
@@ -1211,7 +1133,7 @@ export default function LandingPage() {
                           {getCampaignMeta(campaign)}
                         </span>
                         <span className="text-[11px] font-bold text-slate-500">
-                          {progress}% funded
+                          {progress}% {t('landing.campaigns.funded')}
                         </span>
                       </div>
                       <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-slate-950 group-hover:text-primary">
@@ -1224,7 +1146,7 @@ export default function LandingPage() {
                         />
                       </div>
                       <p className="mt-2 truncate text-xs font-bold text-slate-500">
-                        {formatProgressCurrency(campaign.currentRaised || 0)} raised
+                        {formatProgressCurrency(campaign.currentRaised || 0)} {t('landing.campaigns.raised')}
                       </p>
                     </div>
                   </Link>
@@ -1266,9 +1188,9 @@ export default function LandingPage() {
           </>
         ) : (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
-            <p className="font-black text-slate-900">No campaigns in this category yet.</p>
+            <p className="font-black text-slate-900">{t('landing.categories.noCategoryItems')}</p>
             <p className="mt-2 text-sm font-semibold text-slate-500">
-              Public campaigns will appear here after approval.
+              {t('landing.categories.noCategoryItemsSubtitle')}
             </p>
           </div>
         )}
@@ -1293,8 +1215,7 @@ export default function LandingPage() {
           <div className="col-span-2">
             <Logo className="mb-5 h-10 w-40" />
             <p className="max-w-xs text-sm leading-6 text-slate-600">
-              The giving platform of mgm technology partners, where every donation is one you can
-              actually see.
+              {t('landing.footer.description')}
             </p>
             <div className="mt-6 grid gap-2 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2">
@@ -1309,7 +1230,7 @@ export default function LandingPage() {
           </div>
           <div>
             <h4 className="mb-5 text-xs font-black uppercase tracking-wider text-slate-950">
-              Product
+              {t('landing.footer.product')}
             </h4>
             <ul className="space-y-3 text-sm font-semibold text-slate-500">
               <li>
@@ -1318,7 +1239,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#home')}
                   className="text-left hover:text-primary"
                 >
-                  Home
+                  {t('landing.footer.home')}
                 </button>
               </li>
               <li>
@@ -1327,7 +1248,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#campaigns')}
                   className="text-left hover:text-primary"
                 >
-                  Campaigns
+                  {t('landing.footer.campaigns')}
                 </button>
               </li>
               <li>
@@ -1336,14 +1257,14 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#transparency')}
                   className="text-left hover:text-primary"
                 >
-                  Transparency
+                  {t('landing.footer.transparency')}
                 </button>
               </li>
             </ul>
           </div>
           <div>
             <h4 className="mb-5 text-xs font-black uppercase tracking-wider text-slate-950">
-              Platform
+              {t('landing.footer.platform')}
             </h4>
             <ul className="space-y-3 text-sm font-semibold text-slate-500">
               <li>
@@ -1352,7 +1273,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#features')}
                   className="text-left hover:text-primary"
                 >
-                  Features
+                  {t('landing.footer.features')}
                 </button>
               </li>
               <li>
@@ -1361,7 +1282,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#security')}
                   className="text-left hover:text-primary"
                 >
-                  Security
+                  {t('landing.footer.security')}
                 </button>
               </li>
               <li>
@@ -1370,31 +1291,31 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#faq')}
                   className="text-left hover:text-primary"
                 >
-                  FAQ
+                  {t('landing.footer.faq')}
                 </button>
               </li>
             </ul>
           </div>
           <div>
             <h4 className="mb-5 text-xs font-black uppercase tracking-wider text-slate-950">
-              Account
+              {t('landing.footer.account')}
             </h4>
             <ul className="space-y-3 text-sm font-semibold text-slate-500">
               <li>
                 <Link to={ROUTES.LOGIN} className="hover:text-primary">
-                  Sign in
+                  {t('landing.footer.signIn')}
                 </Link>
               </li>
               <li>
                 <Link to={ROUTES.REGISTER} className="hover:text-primary">
-                  Sign up
+                  {t('landing.footer.signUp')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
             <h4 className="mb-5 text-xs font-black uppercase tracking-wider text-slate-950">
-              Legal
+              {t('landing.footer.legal')}
             </h4>
             <ul className="space-y-3 text-sm font-semibold text-slate-500">
               <li>
@@ -1403,7 +1324,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#home')}
                   className="text-left hover:text-primary"
                 >
-                  Privacy Policy
+                  {t('landing.footer.privacyPolicy')}
                 </button>
               </li>
               <li>
@@ -1412,14 +1333,14 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('#home')}
                   className="text-left hover:text-primary"
                 >
-                  Terms
+                  {t('landing.footer.terms')}
                 </button>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-500">
-          © 2026 mgm technology partners
+          {t('landing.footer.copyright')}
         </div>
       </footer>
     </main>

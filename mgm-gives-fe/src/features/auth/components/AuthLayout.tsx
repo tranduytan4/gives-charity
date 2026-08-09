@@ -148,16 +148,15 @@ export function AuthLayout({
               {t('common:nav.charityPlatform')}
             </div>
             <h2 className="text-5xl font-black leading-tight tracking-normal xl:text-6xl">
-              Give hope, join campaigns, create real change.
+              {t('common:landing.authLayout.heroHeading')}
             </h2>
             <p className="mt-5 max-w-xl text-base leading-8 text-white/82">
-              Donate, volunteer, follow campaign progress, and keep every contribution visible from
-              start to final report.
+              {t('common:landing.authLayout.heroSubtitle')}
             </p>
             <div className="mt-8 flex gap-3">
               <div className="rounded-2xl border border-white/20 bg-white/14 px-5 py-4 backdrop-blur">
                 <div className="text-2xl font-black">860+</div>
-                <div className="mt-1 text-xs font-semibold text-white/75">Active helpers</div>
+                <div className="mt-1 text-xs font-semibold text-white/75">{t('common:landing.authLayout.activeHelpers')}</div>
               </div>
               <div className="rounded-2xl border border-white/20 bg-white/14 px-5 py-4 backdrop-blur">
                 <div className="text-2xl font-black">120+</div>

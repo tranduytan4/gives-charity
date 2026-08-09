@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useAuthUser } from '@/features/auth/hooks';
 import { campaignApi } from '@/features/campaign/api/campaignApi';
@@ -79,6 +80,7 @@ export const ROLE_THEMES: Record<RoleThemeKey, RoleThemeConfig> = {
 };
 
 export function useActiveRoleTheme(): RoleThemeConfig {
+  const { t } = useTranslation('common');
   const { data: user } = useAuthUser();
   const { pathname } = useLocation();
 
@@ -103,22 +105,41 @@ export function useActiveRoleTheme(): RoleThemeConfig {
 
   const userRole = user?.role;
 
+  const roleThemes = useMemo<Record<RoleThemeKey, RoleThemeConfig>>(() => ({
+    USER: {
+      ...ROLE_THEMES.USER,
+      label: t('nav.userPortal'),
+      badgeLabel: t('roles.user'),
+    },
+    CAMPAIGN_ADMIN: {
+      ...ROLE_THEMES.CAMPAIGN_ADMIN,
+      label: t('nav.campaigns'),
+      badgeLabel: t('roles.campaignAdmin'),
+    },
+    SYSTEM_ADMIN: {
+      ...ROLE_THEMES.SYSTEM_ADMIN,
+      label: t('nav.adminPortal'),
+      badgeLabel: t('roles.admin'),
+    },
+  }), [t]);
+
   // 1. System Admin routes (/admin/*)
   if (pathname.startsWith('/admin')) {
     if (userRole === ROLES.CAMPAIGN_ADMIN) {
-      return ROLE_THEMES.CAMPAIGN_ADMIN;
+      return roleThemes.CAMPAIGN_ADMIN;
     }
     if (userRole === ROLES.ADMIN) {
-      return ROLE_THEMES.SYSTEM_ADMIN;
+      return roleThemes.SYSTEM_ADMIN;
     }
   }
 
   // 2. Campaign Admin context:
   // Active if user has explicitly CAMPAIGN_ADMIN role OR has a campaign with status APPROVED, IN_PROGRESS, or COMPLETED
   if (userRole === ROLES.CAMPAIGN_ADMIN || hasApprovedOrActiveCampaign) {
-    return ROLE_THEMES.CAMPAIGN_ADMIN;
+    return roleThemes.CAMPAIGN_ADMIN;
   }
 
   // 3. Default User context
-  return ROLE_THEMES.USER;
+  return roleThemes.USER;
 }
+

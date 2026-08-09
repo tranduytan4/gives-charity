@@ -1,11 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 
 export default function LoginPage() {
+  const { t } = useTranslation('auth');
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Log in to continue supporting internal donation campaigns and make a real impact."
+      title={t('login.title')}
+      subtitle={t('login.subtitle')}
     >
       <LoginForm />
     </AuthLayout>

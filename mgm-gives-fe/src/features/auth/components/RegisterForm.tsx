@@ -122,12 +122,12 @@ export function RegisterForm() {
           <p className="text-xs text-red-500 font-medium">
             {errors.password.message?.includes('required')
               ? errors.password.message
-              : 'Please satisfy all password requirements.'}
+              : t('register.passwordSatisfy')}
           </p>
         )}
         {showPasswordRequirements && (
           <div className="mt-1 space-y-1 rounded-xl border border-white/20 bg-white/10 p-2 text-xs backdrop-blur dark:border-gray-800 dark:bg-gray-900/20">
-            <p className="font-semibold text-white/65">Password must include:</p>
+            <p className="font-semibold text-white/65">{t('register.passwordMustInclude')}</p>
             <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
               {passwordRequirements.map(({ isMet, label }) => {
                 const met = isMet(passwordValue);
@@ -183,7 +183,7 @@ export function RegisterForm() {
 
       <div className="flex items-center gap-3" aria-hidden="true">
         <div className="h-px flex-1 bg-white/20" />
-        <span className="text-xs font-bold uppercase text-white/60">or</span>
+        <span className="text-xs font-bold uppercase text-white/60">{t('shared.or')}</span>
         <div className="h-px flex-1 bg-white/20" />
       </div>
 
@@ -194,7 +194,7 @@ export function RegisterForm() {
         onClick={handleGoogleSignUp}
       >
         <GoogleIcon />
-        Continue with Google
+        {t('shared.continueWithGoogle')}
       </Button>
 
       <p className="text-center text-sm text-white/72">

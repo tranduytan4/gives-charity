@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, Mail } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { Button, Input, Label } from '@/shared/components/ui/';
@@ -11,6 +12,7 @@ import { useForgotPasswordMutation } from '../hooks/useForgotPasswordMutation';
 const COOLDOWN_SECONDS = 5;
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation('auth');
   const forgotPasswordMutation = useForgotPasswordMutation();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -66,14 +68,14 @@ export function ForgotPasswordForm() {
         >
           <CheckCircle2 className="h-5 w-5 shrink-0" />
           <p className="m-0 font-medium leading-5">
-            If this email is registered, a reset link has been sent. Please check your inbox.
+            {t('forgotPassword.successMessage')}
           </p>
         </div>
       )}
 
       <div className="space-y-2">
         <Label htmlFor="email" required>
-          Corporate email
+          {t('forgotPassword.emailLabel')}
         </Label>
 
         <Input
@@ -100,15 +102,15 @@ export function ForgotPasswordForm() {
         className="h-11 w-full cursor-pointer bg-gradient-to-r from-primary to-[oklch(0.5_0.22_265)] text-base font-semibold shadow-md transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {forgotPasswordMutation.isPending
-          ? 'Sending...'
+          ? t('forgotPassword.sending')
           : cooldown > 0
-            ? `Resend in ${cooldown}s`
-            : 'Send reset link'}
+            ? t('forgotPassword.resendIn', { count: cooldown })
+            : t('forgotPassword.sendResetLink')}
       </Button>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
         <Link to="/login" className="font-medium text-primary hover:underline">
-          Back to sign in
+          {t('forgotPassword.backToSignIn')}
         </Link>
       </p>
     </form>
