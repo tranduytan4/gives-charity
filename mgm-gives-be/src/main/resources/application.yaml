@@ -1,11 +1,11 @@
 spring:
   application:
-    name: gives-charity
+    name: mgm-gives
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mgmgives}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -58,7 +58,7 @@ app:
     access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   mail:
-    from-mail: ${FROM_MAIL:support@givescharity.org}
+    from-mail: ${FROM_MAIL:mgm.gives@vtk.io.vn}
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
     verify-expiration: ${MAIL_VERIFY_EXPIRATION:864000000}
     reset-expiration: ${MAIL_RESET_EXPIRATION:864000000}
@@ -70,9 +70,9 @@ app:
     donor-batch-size: ${GEMINI_DONOR_BATCH_SIZE:20}
   seed:
     admin:
-      email: ${SEED_ADMIN_EMAIL:admin@example.com}
-      password: ${SEED_ADMIN_PASSWORD:ChangeMe@123}
-      full-name: ${SEED_ADMIN_FULL_NAME:Admin}
+      email: ${SEED_ADMIN_EMAIL:admin@gives.com}
+      password: ${SEED_ADMIN_PASSWORD:AdminPassword@123}
+      full-name: ${SEED_ADMIN_FULL_NAME:System Admin}
   webex:
     client-id: ${WEBEX_CLIENT_ID:dummy-webex-client-id}
     client-secret: ${WEBEX_CLIENT_SECRET:dummy-webex-client-secret}
@@ -81,16 +81,16 @@ app:
     scopes: ${WEBEX_SCOPES:meeting:schedules_read meeting:schedules_write spark:people_read spark:rooms_read}
     time-zone: ${WEBEX_TIME_ZONE:Asia/Bangkok}
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:${PORT:8080}}
 
 logging:
   file:
     path: ${LOGGING_FILE_PATH:/app/logs}
 
 payos:
-  client-id: ${PAYOS_CLIENT_ID:}
-  api-key: ${PAYOS_API_KEY:}
-  checksum-key: ${PAYOS_CHECKSUM_KEY:}
-  cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000}
-  return-url: ${PAYOS_RETURN_URL:http://localhost:3000}
-  webhook-url: ${PAYOS_WEBHOOK_URL:http://localhost:8080/api/donations/payos/webhook}
+  client-id: ${PAYOS_CLIENT_ID:2c4a32f6-9017-4913-b83c-a9735c36f34f}
+  api-key: ${PAYOS_API_KEY:e99d3902-a69f-4eb4-b797-4bed2f35d087}
+  checksum-key: ${PAYOS_CHECKSUM_KEY:3b10ff6db56cc7ebeda9cba74b20418387165ba7c3a1a6879763d60fa722757e}
+  cancel-url: ${PAYOS_CANCEL_URL:http://mgm-gives.mgm-edv.de:3000}
+  return-url: ${PAYOS_RETURN_URL:http://mgm-gives.mgm-edv.de:3000}
+  webhook-url: ${PAYOS_WEBHOOK_URL:http://mgm-gives.mgm-edv.de:8082/api/donations/payos/webhook}

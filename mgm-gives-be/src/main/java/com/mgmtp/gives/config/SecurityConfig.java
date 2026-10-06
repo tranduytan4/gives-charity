@@ -48,7 +48,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/error",
-            "/ws/**"
+            "/ws/**",
+            "/api/health"
     };
 
     private static final String[] ALLOWED_ORIGINS = {
@@ -59,7 +60,10 @@ public class SecurityConfig {
             "http://mgm-gives.mgm-edv.de:3002",
             "http://mgm-gives.mgm-edv.de",
             "https://*.ngrok-free.app",
-            "https://*.ngrok.io"
+            "https://*.ngrok.io",
+            "https://*.vercel.app",
+            "https://*.hf.space",
+            "https://*.onrender.com"
     };
 
     @Bean
@@ -92,7 +96,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(ALLOWED_ORIGINS));
+        java.util.List<String> origins = new java.util.ArrayList<>(List.of(ALLOWED_ORIGINS));
+        if (mailProps.getFrontendUrl() != null && !mailProps.getFrontendUrl().isBlank()) {
+            origins.add(mailProps.getFrontendUrl().trim());
+        }
+        String extraOrigins = System.getenv("APP_CORS_ALLOWED_ORIGINS");
+        if (extraOrigins != null && !extraOrigins.isBlank()) {
+            for (String origin : extraOrigins.split(",")) {
+                if (!origin.trim().isEmpty()) {
+                    origins.add(origin.trim());
+                }
+            }
+        }
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "Idempotency-Key"));
         configuration.setAllowCredentials(true);
